@@ -164,9 +164,11 @@ class LlamaAttention(nn.Module):
             assert "knowledge_embed" in kwargs
             assert "separate_query_head" in kwargs
             assert "separate_query_linear" in kwargs  # separate_query_linear is q_proj_new
+            assert "kb_scale_factor" in kwargs
             knowledge_embed = kwargs.get('knowledge_embed')
             separate_query_head = kwargs.get('separate_query_head')
             separate_query_linear = kwargs.get('separate_query_linear')
+            kb_scale_factor = kwargs.get('kb_scale_factor')
 
             knowledge_key, knowledge_value = knowledge_embed
 
@@ -202,6 +204,8 @@ class LlamaAttention(nn.Module):
 
                 attn_weights = torch.matmul(query, key) / math.sqrt(self.head_dim)
                 attn_weights_2 = torch.matmul(separate_query, knowledge_key) / math.sqrt(self.head_dim)
+                if kb_scale_factor is not None:
+                    attn_weights_2 = attn_weights_2 - np.log(kb_len) + np.log(kb_scale_factor)
                 attn_weights = torch.concat(tensors=[attn_weights_2, attn_weights], dim=-1)
 
             else:

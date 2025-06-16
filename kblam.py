@@ -16,36 +16,53 @@ import torch
 from typing import List
 import random
 from torch.nn.parallel import DistributedDataParallel
+import evaluate
 
 
 class KBLaM(Module):
     def __init__(self,
-                 llm_type='llama',
                  tokenizer=None,
                  sentence_encoder=None,
                  llm=None,
+                 device="cpu",
                  key_adapter=None,
                  value_adapter=None,
                  separate_query_head=True,
                  separate_query_linear=None,
                  kb_layer_frequency=3,
+                 kb_scale_factor=None,
                  use_extended_question_and_answer=False,
                  use_data_augmentation=False):
         super().__init__()
-        self.llm_type = llm_type
+        print(torch.cuda.is_available())
+        self.device = torch.device(device)
+        self.device = torch.device("cuda")
+
         self.tokenizer = tokenizer
         self.sentence_encoder = sentence_encoder
-        self.llm = llm
-        self.key_adapter = key_adapter
-        self.value_adapter = value_adapter
-        self.separate_query_linear = separate_query_linear
+        self.llm = llm.to(device=self.device)
+        self.key_adapter = key_adapter.to(device=self.device)
+        self.value_adapter = value_adapter.to(device=self.device)
+        self.separate_query_linear = separate_query_linear.to(device=self.device)
+        self.rouge_score = evaluate.load("rouge")
+        self.bert_score = evaluate.load("bertscore")
+        self.bert_score_language = 'en'
 
+        if "llama" in self.llm.config.pretrained_model_name_or_path.lower():
+            self.format_input = self.format_input_llama
+            self.create_label = self.create_label_llama
+            self.prune_text = self.prune_text_llama
+
+        # knowledge base config
         self.kb_layer_frequency = kb_layer_frequency
+        self.kb_scale_factor = kb_scale_factor
         self.separate_query_head = separate_query_head
         self.use_extended_question_and_answer = use_extended_question_and_answer
         self.use_data_augmentation = use_data_augmentation
 
         self.CrossEntropyLoss = torch.nn.CrossEntropyLoss()
+
+        self.to(device=self.device)
 
     def forward(self, batch_data, context_data, test=False):
         if self.sentence_encoder.training:
@@ -58,15 +75,22 @@ class KBLaM(Module):
                 parameter.requires_grad = False
 
         input_index, attention_mask, true_label = self.tokenization(batch_data=batch_data)
-        knowledge_embed = self.retriever(batch_data=batch_data, context_data=context_data)
+        knowledge_key_embed, knowledge_value_embed = self.retriever(batch_data=batch_data, context_data=context_data)
+
+        input_index = input_index.to(self.device)
+        attention_mask = attention_mask.to(self.device)
+        true_label = true_label.to(self.device)
+        knowledge_key_embed = knowledge_key_embed.to(self.device)
+        knowledge_value_embed = knowledge_value_embed.to(self.device)
 
         if test:
             kwargs = {}
             kwargs['use_kblam'] = False
             kwargs['separate_query_head'] = self.separate_query_head
-            kwargs['knowledge_embed'] = knowledge_embed
+            kwargs['knowledge_embed'] = (knowledge_key_embed, knowledge_value_embed)
             kwargs['separate_query_linear'] = self.separate_query_linear
             kwargs['kb_layer_frequency'] = self.kb_layer_frequency
+            kwargs['kb_scale_factor'] = self.kb_scale_factor
 
             pred_token_index_without_kb = self.llm.generate(input_ids=input_index,  # Llama
                                                             attention_mask=attention_mask,
@@ -75,12 +99,7 @@ class KBLaM(Module):
                                                             # generate
                                                             max_new_tokens=40,
                                                             tokenizer=self.tokenizer)
-            kwargs = {}
             kwargs['use_kblam'] = True
-            kwargs['separate_query_head'] = self.separate_query_head
-            kwargs['knowledge_embed'] = knowledge_embed
-            kwargs['separate_query_linear'] = self.separate_query_linear
-            kwargs['kb_layer_frequency'] = self.kb_layer_frequency
             pred_token_index_with_kb = self.llm.generate(input_ids=input_index,  # Llama
                                                          attention_mask=attention_mask,
                                                          # KBLaM
@@ -96,10 +115,11 @@ class KBLaM(Module):
             out = self.llm.forward(input_ids=input_index,  # Llama
                                    attention_mask=attention_mask,
                                    # KBLaM
-                                   use_kblam = True,
+                                   use_kblam=True,
                                    separate_query_head=self.separate_query_head,
-                                   knowledge_embed=knowledge_embed,
+                                   knowledge_embed=(knowledge_key_embed, knowledge_value_embed),
                                    separate_query_linear=self.separate_query_linear,
+                                   kb_scale_factor=self.kb_scale_factor,
                                    kb_layer_frequency=self.kb_layer_frequency)
             logits = out["logits"]
 
@@ -140,22 +160,27 @@ class KBLaM(Module):
 
         return loss
 
+    def score_metrics(self, predictions, references):
+        rouge_score = self.rouge_score.compute(predictions=predictions, references=references)
+        bert_score = self.bert_score.compute(predictions=predictions, references=references,
+                                             lang=self.bert_score_language)
+        for name, value in bert_score.items():
+            if isinstance(value, list):
+                bert_score[name] = np.mean(value)
+
+        return rouge_score, bert_score
+
     def tokenization(self, batch_data):
         with torch.autograd.no_grad():
             batch_format_QA = []
             for data in batch_data:
                 Q, A = self.select_question_and_answer(data=data)
-                if self.llm_type == 'llama':
-                    format_QA = self.format_question_and_answer_llama(Q=Q, A=A)
+                format_QA = self.format_input(Q=Q, A=A)
                 batch_format_QA.append(format_QA)
-
             batch_format_QA = self.tokenizer(batch_format_QA, return_tensors="pt", padding=True)
-
             input_index = batch_format_QA["input_ids"]
             attention_mask = batch_format_QA["attention_mask"]
-
-            if self.llm_type == 'llama':
-                true_label = self.create_label_llama(input_ids=input_index, input_strs=batch_format_QA)
+            true_label = self.create_label(input_ids=input_index, input_strs=batch_format_QA)
 
         return input_index, attention_mask, true_label
 
@@ -213,9 +238,7 @@ class KBLaM(Module):
         batch_size, seq_len, embed_dim = batch_key_embed.shape
         seq_len = batch_size // batch_size + context_size
 
-        kb_embedding = (batch_key_embed, batch_value_embed)
-
-        return kb_embedding
+        return batch_key_embed, batch_value_embed
 
     def select_question_and_answer(self, data):
         Q, A = None, None
@@ -254,7 +277,7 @@ class KBLaM(Module):
         assert Q is not None and A is not None
         return Q, A
 
-    def format_question_and_answer_llama(self, Q: str, A: str):
+    def format_input_llama(self, Q: str, A: str):
         text = "<|start_header_id|>user<|end_header_id|> "
         text += Q
         text += "<|eot_id|>"
