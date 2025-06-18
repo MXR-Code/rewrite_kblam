@@ -34,9 +34,9 @@ class KBLaM(Module):
                  use_extended_question_and_answer=False,
                  use_data_augmentation=False):
         super().__init__()
-        print(torch.cuda.is_available())
+        if torch.cuda.is_available():
+            print("cuda is available", torch.cuda.is_available())
         self.device = torch.device(device)
-        self.device = torch.device("cuda")
 
         self.tokenizer = tokenizer
         self.sentence_encoder = sentence_encoder

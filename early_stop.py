@@ -10,6 +10,7 @@ class EarlyStopping():
     def record(self, model, now_val_loss):
         if self.min_val_loss is None:
             self.min_val_loss = now_val_loss
+            self.best_model_parameter_state_dict = model.state_dict()
 
         if now_val_loss < self.min_val_loss:
             self.best_model_parameter_state_dict = model.state_dict()

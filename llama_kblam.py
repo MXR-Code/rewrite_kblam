@@ -16,33 +16,27 @@ import torch.utils.checkpoint
 from transformers import AutoTokenizer
 from transformers import PretrainedConfig
 
+from transformers.models.llama.configuration_llama import LlamaConfig
+
 from transformers.models.llama.modeling_llama import LlamaForCausalLM
 from transformers.models.llama.modeling_llama import LlamaMLP
 from transformers.models.llama.modeling_llama import LlamaRMSNorm
 from transformers.models.llama.modeling_llama import LlamaPreTrainedModel
-from transformers.models.llama.modeling_llama import LLAMA_INPUTS_DOCSTRING
-from transformers.models.llama.modeling_llama import _CONFIG_FOR_DOC
 from transformers.models.llama.modeling_llama import KwargsForCausalLM
-from transformers.models.llama.configuration_llama import LlamaConfig
 from transformers.models.llama.modeling_llama import LlamaRotaryEmbedding
 from transformers.models.llama.modeling_llama import apply_rotary_pos_emb
 from transformers.models.llama.modeling_llama import repeat_kv
 from transformers.models.llama.modeling_llama import eager_attention_forward
 from transformers.models.llama.modeling_llama import logger
 
-from transformers.utils import add_start_docstrings_to_model_forward
 from transformers.utils import can_return_tuple
-from transformers.utils import is_torch_flex_attn_available
-from transformers.utils import replace_return_docstrings
 from transformers.utils import is_torch_flex_attn_available
 
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
 
 from transformers.modeling_outputs import BaseModelOutputWithPast
 from transformers.modeling_outputs import CausalLMOutputWithPast
-from transformers.modeling_outputs import QuestionAnsweringModelOutput
-from transformers.modeling_outputs import SequenceClassifierOutputWithPast
-from transformers.modeling_outputs import TokenClassifierOutput
+
 
 from transformers.cache_utils import Cache
 from transformers.cache_utils import DynamicCache
@@ -383,7 +377,6 @@ class LlamaModel(LlamaPreTrainedModel):
         self.embed_tokens = value
 
     @can_return_tuple
-    @add_start_docstrings_to_model_forward(LLAMA_INPUTS_DOCSTRING)
     def forward(
             self,
             input_ids: Optional[torch.LongTensor] = None,
@@ -654,8 +647,6 @@ class LlamaForCausalLM(LlamaPreTrainedModel, GenerationMixin):
 
     @can_return_tuple
     @deprecate_kwarg("num_logits_to_keep", version="4.50", new_name="logits_to_keep")
-    @add_start_docstrings_to_model_forward(LLAMA_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=CausalLMOutputWithPast, config_class=_CONFIG_FOR_DOC)
     def forward(
             self,
             input_ids: Optional[torch.LongTensor] = None,
