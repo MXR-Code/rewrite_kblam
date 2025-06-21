@@ -15,5 +15,9 @@ def check_gpu():
             print(f"  剩余显存: {torch.cuda.memory_reserved(i) / 1024**3:.2f} GB")
     else:
         print("CUDA 不可用")
+    print()
+    print()
+    print()
+
 
 check_gpu()

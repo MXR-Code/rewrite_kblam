@@ -124,6 +124,8 @@ class SentenceEncoder(Module, FeatureExtractionMixin):
             if model_name == "ada-embeddings":
                 self.out_dim = 1536
         elif model_name in ["sentence-transformers/all-MiniLM-L6-v2", "sentence-transformers/all-mpnet-base-v2"]:
+            if device.lower() != "cpu":
+                device = None
             self.model = sentence_transformers.SentenceTransformer(model_name_or_path=model_name, device=device)
             self.out_dim = self.model.get_sentence_embedding_dimension()
         else:
