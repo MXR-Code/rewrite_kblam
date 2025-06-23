@@ -8,10 +8,10 @@ conda activate mxr_kgllm
 nvcc --version
 nvidia-smi
 conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 cuda=11.8 cuda-compiler=11.8 cuda-runtime=11.8 cuda-nvprune=11.8 cuda-nvprune=11.8 cuda-libraries=11.8 -c nvidia
-conda install pytorch pytorch-cuda=11.8 torchvision torchaudio -c pytorch
+conda install pytorch pytorch-cuda=11.8 torchvision torchaudio torchdata -c pytorch
 
 # CPU Pytorch
-conda install pytorch torchvision torchaudio -c pytorch
+conda install pytorch torchvision torchaudio torchdata -c pytorch
 
 # Traceback (most recent call last):
 # File "<stdin>", line 1, in <module>
@@ -20,8 +20,14 @@ conda install pytorch torchvision torchaudio -c pytorch
 # ImportError: /data/machao/soft/anaconda3/envs/torch/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so: undefined symbol: iJIT_NotifyEvent
 pip install mkl==2024
 
-# Packages
+# Huggingface Packages
 conda install huggingface_hub transformers tokenizers datasets sentence-transformers azure-identity openai wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl -c conda-forge
+
+# GPU Pytorch Geometric 
+conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
+
+# CPU Pytorch Geometric 
+conda install pyg pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
 
 conda activate base
 conda remove --name mxr_kgllm --all -y
