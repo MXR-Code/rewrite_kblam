@@ -198,7 +198,7 @@ class LlamaAttention(nn.Module):
 
                 attn_weights = torch.matmul(query, key) / math.sqrt(self.head_dim)
                 attn_weights_2 = torch.matmul(separate_query, knowledge_key) / math.sqrt(self.head_dim)
-                if kb_scale_factor is not None:
+                if kb_scale_factor:
                     attn_weights_2 = attn_weights_2 - np.log(kb_len) + np.log(kb_scale_factor)
                 attn_weights = torch.concat(tensors=[attn_weights_2, attn_weights], dim=-1)
 

@@ -1,20 +1,8 @@
 from torch.nn import Module
-from transformers import FeatureExtractionMixin
-import sentence_transformers
 import os
-import sys
-from pathlib import Path
-from azure.identity import AuthenticationRecord
-from azure.identity import DeviceCodeCredential
-from azure.identity import TokenCachePersistenceOptions
-from azure.identity import get_bearer_token_provider
-from openai import AzureOpenAI
-import torch
-import json
 import numpy as np
 import torch
 from typing import List
-import random
 from torch.nn.parallel import DistributedDataParallel
 import evaluate
 
@@ -92,23 +80,23 @@ class KBLaM(Module):
             kwargs['kb_layer_frequency'] = self.kb_layer_frequency
             kwargs['kb_scale_factor'] = self.kb_scale_factor
 
-            pred_token_index_without_kb = self.llm.generate(input_ids=input_index,  # Llama
-                                                            attention_mask=attention_mask,
-                                                            # KBLaM
-                                                            kwargs=kwargs,
-                                                            # generate
-                                                            max_new_tokens=40,
-                                                            tokenizer=self.tokenizer)
+            pred_token_index_NoKB = self.llm.generate(input_ids=input_index,  # Llama
+                                                      attention_mask=attention_mask,
+                                                      # KBLaM
+                                                      kwargs=kwargs,
+                                                      # generate
+                                                      max_new_tokens=40,
+                                                      tokenizer=self.tokenizer)
             kwargs['use_kblam'] = True
-            pred_token_index_with_kb = self.llm.generate(input_ids=input_index,  # Llama
-                                                         attention_mask=attention_mask,
-                                                         # KBLaM
-                                                         kwargs=kwargs,
-                                                         # generate
-                                                         max_new_tokens=40,
-                                                         tokenizer=self.tokenizer)
+            pred_token_index_UsKB = self.llm.generate(input_ids=input_index,  # Llama
+                                                      attention_mask=attention_mask,
+                                                      # KBLaM
+                                                      kwargs=kwargs,
+                                                      # generate
+                                                      max_new_tokens=40,
+                                                      tokenizer=self.tokenizer)
 
-            return pred_token_index_without_kb, pred_token_index_with_kb
+            return pred_token_index_NoKB, pred_token_index_UsKB
 
 
         else:

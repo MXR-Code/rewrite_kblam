@@ -3,7 +3,6 @@ import warnings
 import argparse
 import torch
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
 def check_gpu():
@@ -16,9 +15,9 @@ def check_gpu():
         for i in range(torch.cuda.device_count()):
             print(f"\nGPU {i} 信息:")
             print(f"  名称: {torch.cuda.get_device_name(i)}")
-            print(f"  总显存: {torch.cuda.get_device_properties(i).total_memory / 1024**3:.2f} GB")
-            print(f"  已使用显存: {torch.cuda.memory_allocated(i) / 1024**3:.2f} GB")
-            print(f"  剩余显存: {torch.cuda.memory_reserved(i) / 1024**3:.2f} GB")
+            print(f"  总显存: {torch.cuda.get_device_properties(i).total_memory / 1024 ** 3:.2f} GB")
+            print(f"  已使用显存: {torch.cuda.memory_allocated(i) / 1024 ** 3:.2f} GB")
+            print(f"  剩余显存: {torch.cuda.memory_reserved(i) / 1024 ** 3:.2f} GB")
     else:
         print("CUDA 不可用")
     print()
@@ -63,10 +62,10 @@ def countdown(seconds):
 
 
 def save_best_kblam(stopper, dataloader, kblam, time):
-    save_best_model_path = 'best+'
+    save_best_model_path = f'{time}' + '+'
     save_best_model_path += dataloader.dataset_name + '+'
     save_best_model_path += kblam.sentence_encoder.model_name + '+'
-    save_best_model_path += kblam.llm.config.pretrained_model_name_or_path + f'{time}.pth'
+    save_best_model_path += kblam.llm.config.pretrained_model_name_or_path + f'.pth'
     save_best_model_path = save_best_model_path.replace('/', '_')
     torch.save(stopper.best_model_parameter_state_dict, save_best_model_path)
 
@@ -121,12 +120,12 @@ class LossRecoder():
                                    style_index=style_index,
                                    label=head)
             style_index += 1
-        plt.xlabel('Batch/Epoch')
+        plt.xlabel('Epoch(Batch)')
         plt.ylabel('Loss')
         plt.xticks(ticks=ticks, labels=ticks_name)
         plt.legend()  # 显示图例
         plt.grid(True)
-        plt.savefig(f"train_{time}.png")
+        plt.savefig(f"{time}_train.png")
 
         plt.figure(figsize=(12, 6))
         style_index = 0
@@ -147,12 +146,12 @@ class LossRecoder():
                                    style_index=style_index,
                                    label=head)
             style_index += 1
-        plt.xlabel('Batch/Epoch')
+        plt.xlabel('Epoch(Batch)')
         plt.ylabel('Loss')
         plt.xticks(ticks=ticks, labels=ticks_name)
         plt.legend()  # 显示图例
         plt.grid(True)
-        plt.savefig(f"valid_{time}.png")
+        plt.savefig(f"{time}_valid.png")
 
     def draw_single(self, plt, x_values, y_values, marker=None, linestyle=None, color=None, style_index=None,
                     label=None):
@@ -195,7 +194,6 @@ class LossRecoder():
                 # 最下一行， 'epoch_valid_loss'列，赋值epoch_valid_loss
                 self.valid_loss.loc[self.valid_loss.index[-1], 'epoch_valid_loss'] = epoch_valid_loss
                 print(self.valid_loss.tail(1))
-
 
     def get_epoch_loss(self, epoch):
         train_loss = self.train_loss[self.train_loss['epoch'] == epoch]['epoch_train_loss'].iloc[-1]

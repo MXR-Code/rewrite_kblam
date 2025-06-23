@@ -56,10 +56,10 @@ parser.add_argument('--optimizer_learning_rate', type=float, default=0.001)
 parser.add_argument('--optimizer_weight_decay', type=float, default=0.01)
 parser.add_argument('--seed', type=int, default=1)
 parser.add_argument('--separate_query_head', type=str2bool, default=True)
-parser.add_argument('--kb_scale_factor', type=float, default=None)
+parser.add_argument('--kb_scale_factor', type=float, default=False)
 parser.add_argument('--kb_layer_frequency', type=int, default=3)
 parser.add_argument('--save_model', type=str2bool, default=False)
-parser.add_argument('--huggingface_accesstoken', type=str, default=None)
+parser.add_argument('--huggingface_accesstoken', type=str, default=False)
 args = parser.parse_args()
 check_args(args=args)
 
@@ -130,7 +130,7 @@ num_train_batch = args.num_train_batch if args.num_train_batch else dataloader.n
 num_valid_batch = args.num_valid_batch if args.num_valid_batch else dataloader.num_valid_batch
 
 # train cycle
-start_time = datetime.now().strftime(('%Y-%m-%d %H-%M-%S'))
+start_time = datetime.now().strftime(('%Y-%m-%d-%H-%M-%S'))
 for epoch in range(0, args.num_epoch):
     if kblam.sentence_encoder.training:
         kblam.sentence_encoder.eval()
@@ -139,12 +139,11 @@ for epoch in range(0, args.num_epoch):
     if epoch == 0:
         check_gpu()
 
-    # train
+    print("Train")
     optimizer.zero_grad()
     kblam.key_adapter.train()
     kblam.value_adapter.train()
     kblam.separate_query_linear.train()
-
     for batch_index in range(num_train_batch):
         batch_data, context_data = dataloader.train_dataloader(epoch=epoch, batch_index=batch_index)
         logits, true_label = kblam.forward(batch_data=batch_data, context_data=context_data)
@@ -153,8 +152,9 @@ for epoch in range(0, args.num_epoch):
         optimizer.step()
         loss_recorder.record(epoch=epoch, batch_index=batch_index, batch_train_loss=batch_loss.item())
     scheduler.step()
+    print()
 
-    # validation
+    print("Validation")
     with torch.no_grad():
         kblam.eval()
         for batch_index in range(num_valid_batch):
@@ -162,9 +162,12 @@ for epoch in range(0, args.num_epoch):
             logits, true_label = kblam.forward(batch_data=batch_data, context_data=context_data)
             batch_loss = kblam.loss_function(logits=logits, true_label=true_label)
             loss_recorder.record(epoch=epoch, batch_index=batch_index, batch_valid_loss=batch_loss.item())
+    print()
 
     train_loss, valid_loss = loss_recorder.get_epoch_loss(epoch=epoch)
     stopper.record(now_val_loss=valid_loss, model=kblam)
+    print(f"epoch {epoch} train_loss {train_loss} valid_loss {valid_loss}")
+    print()
 
     if stopper.is_stop:
         break
@@ -179,66 +182,87 @@ with torch.no_grad():
     kblam.llm.generation_config.pad_token_id = tokenizer.pad_token_id
     kblam.llm.generation_config.eos_token_id = tokenizer.eos_token_id
 
-    pred_answer_NoKB_list = []
-    pred_answer_UsKB_list = []
+    question_list = []
+    pred_answer_list_NoKB = []
+    pred_answer_list_UsKB = []
     true_answer_list = []
+    description_list = []
+    key_string_list = []
+    name_list = []
 
     for batch_index in range(dataloader.num_test_batch):
         batch_data, context_data = dataloader.test_dataloader(epoch=batch_index, batch_index=batch_index)
         pred_token_index_NoKB, pred_token_index_UsKB = kblam.forward(batch_data=batch_data,
                                                                      context_data=context_data,
                                                                      test=True)
-        pred_token_index_NoKB = tokenizer.batch_decode(pred_token_index_NoKB, skip_special_tokens=False)
-        pred_token_index_UsKB = tokenizer.batch_decode(pred_token_index_UsKB, skip_special_tokens=False)
+        pred_answer_list_NoKB_raw = tokenizer.batch_decode(pred_token_index_NoKB, skip_special_tokens=False)
+        pred_answer_list_UsKB_raw = tokenizer.batch_decode(pred_token_index_UsKB, skip_special_tokens=False)
 
         for index, data in enumerate(batch_data):
-            # 1
-            pred_answer_NoKB = pred_token_index_NoKB[index]
-            pred_answer_NoKB = kblam.prune_text(sentence=pred_answer_NoKB)
             question = data["Q"]
+            true_answer = data["A"]
+            description = data["description"]
+            key_string = data["key_string"]
+            name = data["name"]
+
+            question_list.append(question)
+            true_answer_list.append(true_answer)
+            description_list.append(description)
+            key_string_list.append(key_string)
+            name_list.append(name)
+
+            # 1 NoKB
+            pred_answer_NoKB = pred_answer_list_NoKB_raw[index]
+            pred_answer_NoKB = kblam.prune_text(sentence=pred_answer_NoKB)
             pred_answer_NoKB = pred_answer_NoKB.split(question)
             if len(pred_answer_NoKB) > 1:
                 pred_answer_NoKB = pred_answer_NoKB[1]
             else:
                 pred_answer_NoKB = ""
-            pred_answer_NoKB_list.append(pred_answer_NoKB)
+            pred_answer_list_NoKB.append(pred_answer_NoKB)
 
-            # 2
-            pred_answer_UsKB = pred_token_index_NoKB[index]
+            # 2 UsKB
+            pred_answer_UsKB = pred_answer_list_UsKB_raw[index]
             pred_answer_UsKB = kblam.prune_text(sentence=pred_answer_UsKB)
-            question = data["Q"]
             pred_answer_UsKB = pred_answer_UsKB.split(question)
             if len(pred_answer_UsKB) > 1:
                 pred_answer_UsKB = pred_answer_UsKB[1]
             else:
                 pred_answer_UsKB = ""
-            pred_answer_UsKB_list.append(pred_answer_UsKB)
-
-            # 3
-            true_answer = data["A"]
-            true_answer_list.append(true_answer)
+            pred_answer_list_UsKB.append(pred_answer_UsKB)
 
         if args.debug: break
 
-    rogue_score_NoKB, bert_score_NoKB = kblam.score_metrics(predictions=pred_answer_NoKB_list,
+    rogue_score_NoKB, bert_score_NoKB = kblam.score_metrics(predictions=pred_answer_list_NoKB,
                                                             references=true_answer_list)
-    rogue_score_UsKB, bert_score_UsKB = kblam.score_metrics(predictions=pred_answer_UsKB_list,
+    rogue_score_UsKB, bert_score_UsKB = kblam.score_metrics(predictions=pred_answer_list_UsKB,
                                                             references=true_answer_list)
     print("rogue_score_NoKB", rogue_score_NoKB)
     print("bert_score_NoKB", bert_score_NoKB)
     print("rogue_score_UsKB", rogue_score_UsKB)
     print("bert_score_UsKB", bert_score_UsKB)
 
-finish_time = datetime.now().strftime(('%Y-%m-%d %H-%M-%S'))
+finish_time = datetime.now().strftime(('%Y-%m-%d-%H-%M-%S'))
 print(f"start:{start_time} finish:{finish_time}")
-
 time = f"from_{start_time}_to_{finish_time}"
 
 if stopper.is_stop and args.save_model:
-    save_best_kblam(stopper, dataloader, kblam, time)
+    save_best_kblam(stopper=stopper, dataloader=dataloader, kblam=kblam, time=time)
 
 # save result
-loss_recorder.draw()
+data = {'question': question_list,
+        'description': description_list,
+        'key_string': key_string_list,
+        'NoKB': pred_answer_list_NoKB,
+        'UsKB': pred_answer_list_UsKB,
+        'True': true_answer_list,
+        'name': name_list}
+df = pd.DataFrame(data)
+print(df)
+df.to_excel(f'{time}_QA_result.xlsx', index=False)
+
+# save result
+loss_recorder.draw(time=time)
 
 # save result
 kblam_config = get_model_hyperparameter(model=kblam)
@@ -254,11 +278,19 @@ globals_value = list(globals().items())  # 将 items() 转换为列表
 for name, value in globals_value:
     if isinstance(value, dict) and not name.startswith('__'):
         all_global_dict[name] = value
+    if isinstance(value, list) and not name.startswith('__'):
+        all_global_dict[name] = value
 
 df = pd.DataFrame()
 for i, (dict_name, now_dict) in enumerate(all_global_dict.items()):
-    name = pd.DataFrame([dict_name], index=[2 * i])
-    keys = pd.DataFrame([now_dict.keys()], index=[2 * i + 1])
-    values = pd.DataFrame([now_dict.values()], index=[2 * i + 2])
-    df = pd.concat([df, name, keys, values], ignore_index=False)
-df.to_excel(f"{time}.xlsx")
+    if isinstance(now_dict, dict):
+        name = pd.DataFrame([dict_name], index=[2 * i])
+        keys = pd.DataFrame([now_dict.keys()], index=[2 * i + 1])
+        values = pd.DataFrame([now_dict.values()], index=[2 * i + 2])
+        df = pd.concat([df, name, keys, values], ignore_index=False)
+    if isinstance(now_dict, list):
+        name = pd.DataFrame([dict_name], index=[2 * i])
+        values = pd.DataFrame([now_dict], index=[2 * i + 1])
+        df = pd.concat([df, name, values], ignore_index=False)
+
+df.to_excel(f"{time}_all_config.xlsx")
