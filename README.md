@@ -13,6 +13,9 @@ conda install pytorch pytorch-cuda=11.8 torchvision torchaudio torchdata -c pyto
 # CPU Pytorch
 conda install pytorch torchvision torchaudio torchdata -c pytorch
 
+# Check Pytorch
+python -c "import torch; print(torch.cuda.is_available())"
+
 # Traceback (most recent call last):
 # File "<stdin>", line 1, in <module>
 # File "/data/machao/soft/anaconda3/envs/torch/lib/python3.8/site-packages/torch/__init__.py", line 197, in <module>
@@ -22,6 +25,9 @@ pip install mkl==2024
 
 # Huggingface Packages
 conda install huggingface_hub transformers tokenizers datasets sentence-transformers azure-identity openai wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl -c conda-forge
+
+# Check Huggingface transformers
+python -c "import transformers.GenerationMixin as aaa; print([d for d in dir(transformers) if "GenerationMixin" in d])"
 
 # GPU Pytorch Geometric 
 conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
@@ -35,7 +41,9 @@ conda clean --all -y
 ```
 
 ```bash
+conda activate mxr_kgllm
 cd /home/dingqiyang/mxr/rewrite_kblam-main
+
 python check_gpu.py
 
 CUDA_VISIBLE_DEVICES=5 nohup \
@@ -63,6 +71,4 @@ python train_test.py \
 
 cat output.log
 
-python -c "import torch; print(torch.cuda.is_available())"
-python -c "import transformers; print([d for d in dir(transformers) if "GenerationMixin" in d])"
 ```
