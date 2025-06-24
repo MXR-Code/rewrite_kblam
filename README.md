@@ -49,23 +49,24 @@ python check_gpu.py
 CUDA_VISIBLE_DEVICES=5 nohup \
 
 python train_test.py \
---debug False \
---device cuda:5 \
---num_train_batch 20 \
---num_valid_batch 20 \
---large_language_model_name meta-llama/Llama-3.2-1B-Instruct \
---sentence_transformer_name sentence-transformers/all-MiniLM-L6-v2 \
---dataset_name synthetic.json \
---tokenizer_padding_side left \
---num_epoch 10000 \
+--large_language_model_name "meta-llama/Llama-3.2-3B-Instruct" \
+--sentence_transformer_name "sentence-transformers/all-MiniLM-L6-v2" \
+--debug True \
+--gpu_index "3,5" \
+--dataset_name "synthetic.json" \
+--tokenizer_padding_side "left" \
+--num_epoch 10 \
 --batch_size 10 \
---stopper_patience 5 \
---optimizer_learning_rate 0.0001 \
---optimizer_weight_decay 0.0001 \
---seed 1 \--separate_query_head True \
+--num_forward_batch 20 \
+--stopper_patience 10 \
+--optimizer_learning_rate 0.001 \
+--optimizer_weight_decay 0.01 \
+--seed 1 \
+--separate_query_head True \
+--kb_scale_factor False \
 --kb_layer_frequency 3 \
---save_model True \
---huggingface_accesstoken qpLLxNyWpIkgRpAsaHvHaGkTDwPHHXWupm
+--save_model False \
+--huggingface_accesstoken hf-qpLLxNyWpIkgRpAsaHvHaGkTDwPHHXWupm
 
 > output.log 2>&1 &
 
