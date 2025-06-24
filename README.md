@@ -43,11 +43,13 @@ conda clean --all -y
 ```bash
 conda activate mxr_kgllm
 cd /home/dingqiyang/mxr/rewrite_kblam-main
+nvidia-smi
 
 python check_gpu.py
 
-CUDA_VISIBLE_DEVICES=5 nohup \
+CUDA_VISIBLE_DEVICES=5
 
+nohup \
 python train_test.py \
 --large_language_model_name "meta-llama/Llama-3.2-3B-Instruct" \
 --sentence_transformer_name "sentence-transformers/all-MiniLM-L6-v2" \
@@ -67,8 +69,7 @@ python train_test.py \
 --kb_layer_frequency 3 \
 --save_model False \
 --huggingface_accesstoken hf-qpLLxNyWpIkgRpAsaHvHaGkTDwPHHXWupm
-
-> output.log 2>&1 &
+> output20250624.log 2>&1 &
 
 cat output.log
 
