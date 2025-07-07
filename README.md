@@ -4,10 +4,17 @@ qpLLxNyWpIkgRpAsaHvHaGkTDwPHHXWupm
 conda create -n mxr_kgllm python=3.10 -y
 conda activate mxr_kgllm
 
-# GPU Pytorch
+# Cuda Version
 nvcc --version
 nvidia-smi
+
+# Cuda Linux
 conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 cuda=11.8 cuda-nvrtc=11.8 cuda-compiler=11.8 cuda-runtime=11.8 cuda-nvprune=11.8 cuda-nvprune=11.8 cuda-libraries=11.8 -c nvidia
+
+# Cuda Windows
+conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 cuda=11.8 cuda-nvrtc=11.8 cuda-compiler=11.8 cuda-runtime=11.8 cuda-nvprune=11.8 cuda-nvprune=11.8 cuda-libraries=11.8 libnvjpeg libcublas -c nvidia
+
+# GPU Pytorch
 conda install pytorch pytorch-cuda=11.8 torchvision torchaudio torchdata -c pytorch
 
 # CPU Pytorch
@@ -24,10 +31,10 @@ python -c "import torch; print(torch.cuda.is_available())"
 pip install mkl==2024
 
 # Huggingface Packages
-conda install huggingface_hub transformers tokenizers datasets sentence-transformers azure-identity openai wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl -c conda-forge
+conda install huggingface_hub transformers tokenizers datasets sentence-transformers azure-identity openai wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium -c conda-forge
 
 # Check Huggingface transformers
-python -c "import transformers.GenerationMixin as aaa; print([d for d in dir(transformers) if "GenerationMixin" in d])"
+python -c "import transformers; print([d for d in dir(transformers) if "GenerationMixin" in d])"
 
 # GPU Pytorch Geometric 
 conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
@@ -35,14 +42,13 @@ conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-
 # CPU Pytorch Geometric 
 conda install pyg pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
 
-# Selenium
-conda install selenium -c conda-forge
-
-
 conda activate base
 conda remove --name mxr_kgllm --all -y
 conda clean --all -y
 ```
+
+conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 cuda=11.8 cuda-nvrtc=11.8 cuda-compiler=11.8 cuda-runtime=11.8 cuda-nvprune=11.8 cuda-nvprune=11.8 cuda-libraries=11.8 libnvjpeg libcublas pytorch pytorch-cuda=11.8 torchvision torchaudio torchdata huggingface_hub transformers tokenizers datasets sentence-transformers azure-identity openai wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg -c conda-forge -c pytorch -c nvidia
+
 
 ```bash
 conda activate mxr_kgllm
