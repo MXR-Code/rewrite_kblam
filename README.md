@@ -7,7 +7,7 @@ conda activate mxr_kgllm
 # GPU Pytorch
 nvcc --version
 nvidia-smi
-conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 cuda=11.8 cuda-compiler=11.8 cuda-runtime=11.8 cuda-nvprune=11.8 cuda-nvprune=11.8 cuda-libraries=11.8 -c nvidia
+conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 cuda=11.8 cuda-nvrtc=11.8 cuda-compiler=11.8 cuda-runtime=11.8 cuda-nvprune=11.8 cuda-nvprune=11.8 cuda-libraries=11.8 -c nvidia
 conda install pytorch pytorch-cuda=11.8 torchvision torchaudio torchdata -c pytorch
 
 # CPU Pytorch
