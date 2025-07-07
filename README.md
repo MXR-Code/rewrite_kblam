@@ -35,6 +35,10 @@ conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-
 # CPU Pytorch Geometric 
 conda install pyg pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
 
+# Selenium
+conda install selenium -c conda-forge
+
+
 conda activate base
 conda remove --name mxr_kgllm --all -y
 conda clean --all -y
