@@ -37,6 +37,9 @@ conda install huggingface_hub transformers tokenizers datasets sentence-transfor
 conda install openai -c conda-forge
 conda install azure-ai-agents azure-ai-contentsafety azure-ai-documentintelligence azure-ai-evaluation azure-ai-formrecognizer azure-ai-language-conversations azure-ai-language-questionanswering azure-ai-metricsadvisor azure-ai-ml azure-ai-textanalytics azure-ai-translation-document azure-ai-translation-text azure-ai-vision azure-appconfiguration azure-communication azure-confidentialledger azure-containerregistry azure-core azure-cosmos azure-data-tables azure-developer-loadtesting azure-digitaltwins-core azure-eventgrid azure-eventhub azure-health-deidentification azure-healthinsights azure-identity azure-iot-deviceupdate azure-keyvault azure-messaging-webpubsubclient azure-messaging-webpubsubservice azure-mgmt azure-monitor-ingestion azure-monitor-query azure-schemaregistry azure-search-documents azure-security-attestation azure-servicebus azure-storage -c microsoft
 
+# Anthropic Claude API
+conda install anthropic -c conda-forge
+
 # Other
 wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium -c conda-forge
 
