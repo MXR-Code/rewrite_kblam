@@ -31,7 +31,14 @@ python -c "import torch; print(torch.cuda.is_available())"
 pip install mkl==2024
 
 # Huggingface Packages
-conda install huggingface_hub transformers tokenizers datasets sentence-transformers azure-identity openai wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium -c conda-forge
+conda install huggingface_hub transformers tokenizers datasets sentence-transformers
+
+# OpenAI API
+conda install azure-identity openai azure-core -c conda-forge
+conda install azure-ai-textanalytics -c microsoft
+
+# Other
+wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium -c conda-forge
 
 # Check Huggingface transformers
 python -c "import transformers; print([d for d in dir(transformers) if "GenerationMixin" in d])"
