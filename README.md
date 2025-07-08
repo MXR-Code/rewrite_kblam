@@ -57,7 +57,6 @@ conda remove --name mxr_kgllm --all -y
 conda clean --all -y
 ```
 
-conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 cuda=11.8 cuda-nvrtc=11.8 cuda-compiler=11.8 cuda-runtime=11.8 cuda-nvprune=11.8 cuda-nvprune=11.8 cuda-libraries=11.8 libnvjpeg libcublas pytorch pytorch-cuda=11.8 torchvision torchaudio torchdata huggingface_hub transformers tokenizers datasets sentence-transformers azure-identity openai wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg -c conda-forge -c pytorch -c nvidia
 
 
 ```bash
