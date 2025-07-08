@@ -31,7 +31,7 @@ python -c "import torch; print(torch.cuda.is_available())"
 pip install mkl==2024
 
 # Huggingface Packages
-conda install huggingface_hub transformers tokenizers datasets sentence-transformers
+conda install huggingface_hub transformers tokenizers datasets sentence-transformers -c conda-forge
 
 # OpenAI API
 conda install azure-identity openai azure-core -c conda-forge
