@@ -41,7 +41,7 @@ conda install azure-ai-agents azure-ai-contentsafety azure-ai-documentintelligen
 conda install anthropic -c conda-forge
 
 # Other
-wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium -c conda-forge
+conda install wandb rich accelerate evaluate nltk rouge-score absl-py bert_score openpyxl selenium -c conda-forge
 
 # Check Huggingface transformers
 python -c "import transformers; print([d for d in dir(transformers) if "GenerationMixin" in d])"
