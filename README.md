@@ -17,8 +17,6 @@ conda install cuda-toolkit=11.8 cuda-cupti=11.8 cuda-cudart=11.8 cuda-nvtx=11.8 
 # GPU Pytorch
 conda install pytorch pytorch-cuda=11.8 torchvision torchaudio torchdata -c pytorch
 
-# CPU Pytorch
-conda install pytorch torchvision torchaudio torchdata -c pytorch
 
 # Check Pytorch
 python -c "import torch; print(torch.cuda.is_available())"
@@ -32,9 +30,6 @@ pip install mkl==2024
 
 # GPU Pytorch Geometric 
 conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
-
-# CPU Pytorch Geometric 
-conda install pyg pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
 
 # Huggingface Packages
 conda install huggingface_hub transformers tokenizers datasets sentence-transformers -c conda-forge
