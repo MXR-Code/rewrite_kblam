@@ -30,6 +30,12 @@ python -c "import torch; print(torch.cuda.is_available())"
 # ImportError: /data/machao/soft/anaconda3/envs/torch/lib/python3.8/site-packages/torch/lib/libtorch_cpu.so: undefined symbol: iJIT_NotifyEvent
 pip install mkl==2024
 
+# GPU Pytorch Geometric 
+conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
+
+# CPU Pytorch Geometric 
+conda install pyg pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
+
 # Huggingface Packages
 conda install huggingface_hub transformers tokenizers datasets sentence-transformers -c conda-forge
 
@@ -46,11 +52,7 @@ conda install wandb rich accelerate evaluate nltk rouge-score absl-py bert_score
 # Check Huggingface transformers
 python -c "import transformers; print([d for d in dir(transformers) if "GenerationMixin" in d])"
 
-# GPU Pytorch Geometric 
-conda install pyg=*=*cu* pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
 
-# CPU Pytorch Geometric 
-conda install pyg pytorch-scatter pytorch-sparse pytorch-cluster pytorch-spline-conv -c pyg
 
 conda activate base
 conda remove --name mxr_kgllm --all -y
